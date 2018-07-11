@@ -33,7 +33,7 @@ public class Meal {
         this.id = id;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
