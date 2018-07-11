@@ -4,7 +4,7 @@
 <html>
 <head>
     <title>Meals</title>
-    <link href="style.css" type="text/css" rel="stylesheet">
+    <link href="css/style.css" type="text/css" rel="stylesheet">
 </head>
 <body>
 <h3><a href="index.html">Home</a></h3>
@@ -20,7 +20,7 @@
         </tr>
         </thead>
         <tbody>
-        <c:forEach items="${meals}" var="meal">
+        <c:forEach items="${requestScope.meals}" var="meal">
             <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.MealWithExceed" scope="page"/>
             <tr class="${meal.exceed?'exceeded':'normal'}">
                 <td>${f:formatDateTime(meal.dateTime)}</td>

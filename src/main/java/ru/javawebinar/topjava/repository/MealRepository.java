@@ -6,7 +6,10 @@ import java.util.Collection;
 
 public interface MealRepository {
     Meal get(int id);
+
     Meal save(Meal meal);
+
     boolean delete(int id);
+
     Collection<Meal> getAll();
 }

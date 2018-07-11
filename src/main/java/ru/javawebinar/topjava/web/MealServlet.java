@@ -28,7 +28,7 @@ public class MealServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         Meal mealFromForm = collectEntity(request);
-        log.debug("{} meal, {}", request.getParameter("action"), mealFromForm);
+        log.debug(mealFromForm.isNew() ? "Create {}" : "Update {}", mealFromForm);
 
         repository.save(mealFromForm);
 
@@ -37,46 +37,41 @@ public class MealServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
-        String id = null;
-        String path = null;
-        switch (action == null ? "list" : action) {
-            case "list":
+        switch (action == null ? "all" : action) {
+            case "all":
                 log.debug("getAll");
                 request.setAttribute("meals", MealsUtil.getWithExceeded(repository.getAll(), MealsUtil.DEFAULT_CALORIES_PER_DAY));
-                path = "/meals.jsp";
+                request.getRequestDispatcher("/meals.jsp").forward(request, response);
                 break;
             case "update":
-                id = getId(request);
             case "create":
-                request.setAttribute("meal", "update".equals(action) ? repository.get(Integer.parseInt(id)) : createDefaultEntity());
-                path = "/mealForm.jsp";
+                final Meal meal = "update".equals(action) ? repository.get(getId(request))
+                        : new Meal(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), "", MealsUtil.DEFAULT_MEAL_CALORIES);
+                request.setAttribute("meal", meal);
+                request.getRequestDispatcher("/mealForm.jsp").forward(request, response);
                 break;
             case "delete":
-                id = getId(request);
+                int id = getId(request);
                 log.debug("delete meal with id={}", id);
-                repository.delete(Integer.parseInt(id));
+                repository.delete(id);
                 //two lines below, for "hiding" deleted meal's id
                 response.sendRedirect("meals");
                 return;
             default:
                 log.debug("not supported action");
         }
-        request.getRequestDispatcher(path).forward(request, response);
     }
 
-    private String getId(HttpServletRequest request) {
-        return Objects.requireNonNull(request.getParameter("id"), "The request have null meal's id parameter");
+    private int getId(HttpServletRequest request) {
+        String paramId = Objects.requireNonNull(request.getParameter("id"), "The request have null meal's id parameter");
+        return Integer.parseInt(paramId);
     }
 
     private Meal collectEntity(HttpServletRequest request) {
         String dateTime = request.getParameter("dateTime");
         String description = request.getParameter("description");
         int calories = Integer.parseInt(request.getParameter("calories"));
-        String id = getId(request);
+        String id = request.getParameter("id");
         return new Meal(id.isEmpty() ? null : Integer.parseInt(id), LocalDateTime.parse(dateTime), description, calories);
-    }
-
-    private Meal createDefaultEntity() {
-        return new Meal(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), "", MealsUtil.DEFAULT_MEAL_CALORIES);
     }
 }
