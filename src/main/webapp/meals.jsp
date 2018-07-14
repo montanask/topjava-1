@@ -22,6 +22,23 @@
     <h2>Meals</h2>
     <a href="meals?action=create">Add Meal</a>
     <hr/>
+    <form method="get" action="meals">
+        <input type=hidden name="action" value="filter">
+        <label>От даты
+            <input type="date" value="${requestScope.startDate}" name="startDate">
+        </label>
+        <label>
+            <input type="time" value="${requestScope.startTime}" name="startTime">
+        </label><br>
+        <label>До даты
+            <input type="date" value="${requestScope.endDate}" name="endDate">
+        </label>
+        <label>
+            <input type="time" value="${requestScope.endTime}" name="endTime">
+        </label><br>
+        <button type="submit">Save</button>
+        <button onclick="window.history.back()" type="reset">Cancel</button>
+    </form>
     <table border="1" cellpadding="8" cellspacing="0">
         <thead>
         <tr>
@@ -32,8 +49,8 @@
             <th></th>
         </tr>
         </thead>
-        <c:forEach items="${meals}" var="meal">
-            <jsp:useBean id="meal" scope="page" type="ru.javawebinar.topjava.model.MealWithExceed"/>
+        <c:forEach items="${requestScope.meals}" var="meal">
+            <jsp:useBean id="meal" scope="page" type="ru.javawebinar.topjava.to.MealWithExceed"/>
             <tr class="${meal.exceed ? 'exceeded' : 'normal'}">
                 <td>
                         <%--${meal.dateTime.toLocalDate()} ${meal.dateTime.toLocalTime()}--%>
