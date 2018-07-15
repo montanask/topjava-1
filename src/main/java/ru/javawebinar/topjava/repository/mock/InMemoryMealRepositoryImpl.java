@@ -1,85 +1,75 @@
 package ru.javawebinar.topjava.repository.mock;
 
-import org.slf4j.Logger;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.DateTimeUtil;
 import ru.javawebinar.topjava.util.MealsUtil;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.slf4j.LoggerFactory.getLogger;
+
+import static ru.javawebinar.topjava.repository.mock.InMemoryUserRepositoryImpl.ADMIN_ID;
+import static ru.javawebinar.topjava.repository.mock.InMemoryUserRepositoryImpl.USER_ID;
 
 @Repository
 public class InMemoryMealRepositoryImpl implements MealRepository {
-    private static final Logger log = getLogger(InMemoryMealRepositoryImpl.class);
+    // Map  userId -> (mealId-> meal)
     private final Map<Integer, Map<Integer, Meal>> repository = new ConcurrentHashMap<>();
     private static final AtomicInteger counter = new AtomicInteger(0);
 
     {
-        MealsUtil.MEALS.forEach(meal -> save(meal, 1));
+        MealsUtil.MEALS.forEach(meal -> save(meal, USER_ID));
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 13, 0), "Обед админа", 500), ADMIN_ID);
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 20, 0), "Ужин админа", 510), ADMIN_ID);
     }
 
     @Override
     public Meal save(Meal meal, int userId) {
+        Map<Integer, Meal> meals = repository.computeIfAbsent(userId, ConcurrentHashMap::new);
         if (meal.isNew()) {
-            repository.putIfAbsent(userId, new HashMap<>());
             meal.setId(counter.incrementAndGet());
-            log.info("create {} for user with id={}", meal, userId);
-            repository.get(userId).put(meal.getId(), meal);
-
+            meals.put(meal.getId(), meal);
             return meal;
         }
-        Map<Integer, Meal> userMeals = repository.get(userId);
-        log.info("update {} for user with id={}", meal, userId);
-        // null: if update meal, but user absent in a storage, or if update other user's meal
-        return userMeals != null ? userMeals.computeIfPresent(meal.getId(), (mealId, oldMeal) -> meal)
-                : null;
+        return meals.computeIfPresent(meal.getId(), (mealId, oldMeal) -> meal);
     }
 
     @Override
-    public void delete(int userMealId, int userId) {
-        Map<Integer, Meal> userMeals = repository.get(userId);
-        if (userMeals != null) {
-            log.info("delete {} for user with id={}", userMeals.remove(userMealId), userId);
-        }
+    public boolean delete(int id, int userId) {
+        Map<Integer, Meal> meals = repository.get(userId);
+        return meals != null && meals.remove(id) != null;
     }
 
     @Override
-    public Meal get(int userMealId, int userId) {
-        Map<Integer, Meal> userMeals = repository.get(userId);
-        Meal meal = null;
-        if (userMeals != null) {
-            meal = userMeals.get(userMealId);
-            log.info("get {} for user with id={}", meal, userId);
-        }
-        return meal;
+    public Meal get(int id, int userId) {
+        Map<Integer, Meal> meals = repository.get(userId);
+        return meals == null ? null : meals.get(id);
     }
 
     @Override
-    public Collection<Meal> getAll(int userId) {
-        log.info("getAll for user with id={}", userId);
-        return repository.get(userId).values();
+    public List<Meal> getAll(int userId) {
+        return getFiltered(meal -> true, userId);
     }
 
     @Override
-    public List<Meal> getDateFiltered(int userId, LocalDate startDate, LocalDate endDate) {
-        log.info("getDateFiltered for user with id={}", userId);
-        return getFiltered(userId, meal -> DateTimeUtil.isBetween(meal.getDate(), startDate, endDate));
+    public List<Meal> getBetween(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
+        return getFiltered(meal -> DateTimeUtil.isBetween(meal.getDateTime(), startDateTime, endDateTime), userId);
     }
 
-    private List<Meal> getFiltered(int userId, Predicate<Meal> filter) {
-        Map<Integer, Meal> userMeals = repository.get(userId);
-        return userMeals != null ? userMeals.values().stream()
-                .filter(filter)
-                .sorted(Comparator.comparing(Meal::getDateTime, Comparator.reverseOrder()))
-                .collect(Collectors.toList()) : Collections.EMPTY_LIST;
+    private List<Meal> getFiltered(Predicate<Meal> filter, int userId) {
+        Map<Integer, Meal> meals = repository.get(userId);
+        return CollectionUtils.isEmpty(meals) ? Collections.emptyList() :
+                meals.values().stream()
+                        .filter(filter)
+                        .sorted(Comparator.comparing(Meal::getDateTime).reversed())
+                        .collect(Collectors.toList());
     }
 }
-

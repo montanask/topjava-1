@@ -1,13 +1,13 @@
 package ru.javawebinar.topjava.service;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
-import java.time.LocalDate;
-import java.util.Collection;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
@@ -16,7 +16,7 @@ import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 public class MealServiceImpl implements MealService {
     private final MealRepository repository;
 
-
+    @Autowired
     public MealServiceImpl(MealRepository repository) {
         this.repository = repository;
     }
@@ -27,13 +27,13 @@ public class MealServiceImpl implements MealService {
     }
 
     @Override
-    public void delete(int userMealId, int userId) {
-        repository.delete(userMealId, userId);
+    public void delete(int id, int userId) throws NotFoundException {
+        checkNotFoundWithId(repository.delete(id, userId), id);
     }
 
     @Override
-    public Meal get(int userMealId, int userId) throws NotFoundException {
-        return checkNotFoundWithId(repository.get(userMealId, userId), userMealId);
+    public Meal get(int id, int userId) throws NotFoundException {
+        return checkNotFoundWithId(repository.get(id, userId), id);
     }
 
     @Override
@@ -42,12 +42,12 @@ public class MealServiceImpl implements MealService {
     }
 
     @Override
-    public Collection<Meal> getAll(int userId) {
+    public List<Meal> getAll(int userId) {
         return repository.getAll(userId);
     }
 
     @Override
-    public List<Meal> getDateFiltered(int userId, LocalDate startDate, LocalDate endDate) {
-        return repository.getDateFiltered(userId, startDate, endDate);
+    public List<Meal> getBetweenDateTimes(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
+        return repository.getBetween(startDateTime, endDateTime, userId);
     }
 }
