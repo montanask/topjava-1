@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.service;
 
+import org.springframework.dao.DataAccessException;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
@@ -21,7 +22,7 @@ public interface MealService {
 
     List<Meal> getAll(int userId);
 
-    Meal update(Meal meal, int userId) throws NotFoundException;
+    void update(Meal meal, int userId) throws NotFoundException;
 
-    Meal create(Meal meal, int userId);
+    Meal create(Meal meal, int userId) throws DataAccessException;
 }
