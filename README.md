@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/52229ab3d4d5439da6b9ba75cb8ae2d7)](https://www.codacy.com/project/montanask/topjava-1/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=montanask/topjava-1&amp;utm_campaign=Badge_Grade_Dashboard)
+
 Java Enterprise Online Project
 ===============================
 
