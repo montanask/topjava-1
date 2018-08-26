@@ -1,7 +1,5 @@
 package ru.javawebinar.topjava.service;
 
-import org.hsqldb.lib.StopWatch;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -31,11 +29,6 @@ public class MealServiceTest {
     static {
         SLF4JBridgeHandler.install();
     }
-
-    @Rule
-    StopWatch watch = new StopWatch(){
-
-    };
 
     @Autowired
     private MealService service;
