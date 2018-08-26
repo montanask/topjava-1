@@ -4,8 +4,7 @@ import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
+import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -21,6 +20,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.concurrent.TimeUnit;
 
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
@@ -34,8 +34,7 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
     private static final Logger log = LoggerFactory.getLogger(MealServiceTest.class);
-    private static long duration;
-    private static String total;
+    private static StringBuilder builder = new StringBuilder();
 
     static {
         SLF4JBridgeHandler.install();
@@ -48,25 +47,22 @@ public class MealServiceTest {
     public final ExpectedException exception = ExpectedException.none();
 
     @Rule
-    public final TestRule watcher = new TestWatcher() {
+    public final Stopwatch stopwatch = new Stopwatch() {
         @Override
-        protected void starting(Description description) {
-            super.starting(description);
-            duration = System.currentTimeMillis();
-        }
-
-        @Override
-        protected void finished(Description description) {
-            super.finished(description);
-            duration = System.currentTimeMillis() - duration;
-            log.warn("{} finished on {} MILLISECONDS", description.getMethodName(), duration);
-            total += String.format("%s - %d millis\n", description.getMethodName(), duration);
+        protected void finished(long nanos, Description description) {
+            String result = String.format("\n%-25s %7d", description.getMethodName(), TimeUnit.NANOSECONDS.toMillis(nanos));
+            log.info(result + "\n");
+            builder.append(result);
         }
     };
 
     @AfterClass
-    public static void durations() {
-        System.out.println(total);
+    public static void printResults() {
+        log.info("\n---------------------------------" +
+                "\nTest                 Duration, ms" +
+                "\n---------------------------------" +
+                builder.toString() +
+                "\n---------------------------------");
     }
 
     @Test
@@ -111,6 +107,7 @@ public class MealServiceTest {
     @Test
     public void updateNotFound() throws Exception {
         exception.expect(NotFoundException.class);
+        exception.expectMessage("Not found entity with id=" + MEAL1.getId());
         service.update(MEAL1, ADMIN_ID);
     }
 
