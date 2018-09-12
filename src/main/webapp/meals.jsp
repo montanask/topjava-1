@@ -5,7 +5,7 @@
 <html>
 <head>
     <title>Meal list</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link href="css/style.css" type="text/css" rel="stylesheet">
 </head>
 <body>
 <section>
@@ -33,14 +33,13 @@
     <hr/>
     <a href="meals?action=create">Add Meal</a>
     <hr/>
-    <table border="1" cellpadding="8" cellspacing="0">
+    <table>
         <thead>
         <tr>
             <th>Date</th>
             <th>Description</th>
             <th>Calories</th>
-            <th></th>
-            <th></th>
+            <th colspan="2"></th>
         </tr>
         </thead>
         <c:forEach items="${meals}" var="meal">
