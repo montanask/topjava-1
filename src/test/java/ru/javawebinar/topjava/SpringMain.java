@@ -13,15 +13,12 @@ import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 
-import static ru.javawebinar.topjava.Profiles.JDBC;
-import static ru.javawebinar.topjava.Profiles.POSTGRES_DB;
-
 public class SpringMain {
     public static void main(String[] args) {
         // java 7 Automatic resource management
 //        try (ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext()) {
         try (GenericXmlApplicationContext appCtx = new GenericXmlApplicationContext()) {
-            appCtx.getEnvironment().setActiveProfiles(POSTGRES_DB, JDBC);
+            appCtx.getEnvironment().setActiveProfiles(Profiles.getActiveDbProfile(), Profiles.REPOSITORY_IMPLEMENTATION);
 //            appCtx.setConfigLocations("spring/spring-app.xml", "spring/spring-db.xml");
             appCtx.load("spring/spring-app.xml", "spring/spring-db.xml");
             appCtx.refresh();

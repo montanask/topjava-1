@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.model;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.util.CollectionUtils;
 
@@ -47,13 +48,14 @@ public class User extends AbstractNamedEntity {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     @ElementCollection(fetch = FetchType.EAGER)
+    @BatchSize(size = 200)
     private Set<Role> roles;
 
     @Column(name = "calories_per_day", columnDefinition = "int default 2000")
     @Range(min = 10, max = 10000)
     private int caloriesPerDay = DEFAULT_CALORIES_PER_DAY;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     @OrderBy("dateTime DESC")
     private List<Meal> meals;
 
@@ -128,10 +130,6 @@ public class User extends AbstractNamedEntity {
 
     public List<Meal> getMeals() {
         return meals;
-    }
-
-    public void setMeals(List<Meal> meals) {
-        this.meals = CollectionUtils.isEmpty(meals) ? Collections.emptyList() :new ArrayList<>(meals);
     }
 
     @Override
